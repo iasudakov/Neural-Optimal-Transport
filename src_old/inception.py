@@ -330,4 +330,3 @@ class FIDInceptionE_2(torchvision.models.inception.InceptionE):
 
         outputs = [branch1x1, branch3x3, branch3x3dbl, branch_pool]
         return torch.cat(outputs, 1)
-
