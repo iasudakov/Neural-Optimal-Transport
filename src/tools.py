@@ -257,8 +257,8 @@ def load_dataset(name, img_size=64, batch_size=64,
         if not classes:
             classes = [i for i in range(10)]
 
-        train_set = datasets.MNIST(f'./data/{name}', train=True, transform=transform, download=True)
-        test_set = datasets.MNIST(f'./data/{name}', train=False, transform=transform, download=True)
+        train_set = datasets.MNIST(f'./data/{name}', train=True, transform=transform, download=False)
+        test_set = datasets.MNIST(f'./data/{name}', train=False, transform=transform, download=False)
         
         train_test = []
         

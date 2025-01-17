@@ -10,9 +10,9 @@
 
 import numpy as np
 import torch
-from torch_utils import persistence
+# from torch_utils import persistence
 from torch.nn.functional import silu
-from layers import dense, AdaptiveGroupNorm, PixelNorm
+from EDM_src.layers import dense, AdaptiveGroupNorm, PixelNorm
 
 #----------------------------------------------------------------------------
 # Unified routine for initializing weights and biases.
@@ -27,7 +27,7 @@ def weight_init(shape, mode, fan_in, fan_out):
 #----------------------------------------------------------------------------
 # Fully-connected layer.
 
-@persistence.persistent_class
+# @persistence.persistent_class
 class Linear(torch.nn.Module):
     def __init__(self, in_features, out_features, bias=True, init_mode='kaiming_normal', init_weight=1, init_bias=0):
         super().__init__()
@@ -46,7 +46,7 @@ class Linear(torch.nn.Module):
 #----------------------------------------------------------------------------
 # Convolutional layer with optional up/downsampling.
 
-@persistence.persistent_class
+# @persistence.persistent_class
 class Conv2d(torch.nn.Module):
     def __init__(self,
         in_channels, out_channels, kernel, bias=True, up=False, down=False,
@@ -93,7 +93,7 @@ class Conv2d(torch.nn.Module):
 #----------------------------------------------------------------------------
 # Group normalization.
 
-@persistence.persistent_class
+# @persistence.persistent_class
 class GroupNorm(torch.nn.Module):
     def __init__(self, num_channels, num_groups=32, min_channels_per_group=4, eps=1e-5):
         super().__init__()
@@ -131,7 +131,7 @@ class AttentionOp(torch.autograd.Function):
 # Represents the union of all features employed by the DDPM++, NCSN++, and
 # ADM architectures.
 
-@persistence.persistent_class
+# @persistence.persistent_class
 class UNetBlock(torch.nn.Module):
     def __init__(self,
         in_channels, out_channels, zemb_dim, up=False, down=False, attention=False,
@@ -187,15 +187,15 @@ class UNetBlock(torch.nn.Module):
 # available at https://github.com/yang-song/score_sde_pytorch
 
 
-@persistence.persistent_class
+# @persistence.persistent_class
 class SongUNet(torch.nn.Module):
     def __init__(self,
         img_resolution,                     # Image resolution at input/output.
         in_channels,                        # Number of color channels at input.
         out_channels,                       # Number of color channels at output.
-        zemb_dim           = None,
-        n_mlp               = None,
-        nz                  = None,
+        zemb_dim            = 256,
+        n_mlp               = 4,
+        nz                  = 100,
         model_channels      = 128,          # Base multiplier for the number of channels.
         channel_mult        = [1,2,2,2],    # Per-resolution multipliers for the number of channels.
         num_blocks          = 4,            # Number of residual blocks per resolution.
@@ -210,11 +210,12 @@ class SongUNet(torch.nn.Module):
 
         super().__init__()
         self.z_emb_dim = zemb_dim
+        self.act = torch.nn.SiLU()
         init = dict(init_mode='xavier_uniform')
         init_zero = dict(init_mode='xavier_uniform', init_weight=1e-5)
         init_attn = dict(init_mode='xavier_uniform', init_weight=np.sqrt(0.2))
         block_kwargs = dict(
-            z_emb_dim=zemb_dim, num_heads=1, dropout=dropout, skip_scale=np.sqrt(0.5), eps=1e-6,
+            zemb_dim=zemb_dim, num_heads=1, dropout=dropout, skip_scale=np.sqrt(0.5), eps=1e-6,
             resample_filter=resample_filter, resample_proj=True, adaptive_scale=False,
             init=init, init_zero=init_zero, init_attn=init_attn,
         )
@@ -272,7 +273,7 @@ class SongUNet(torch.nn.Module):
             mapping_layers.append(self.act)
         self.z_transform = torch.nn.Sequential(*mapping_layers)
 
-    def forward(self, x, z):        
+    def forward(self, x, z):
         zemb = self.z_transform(z)
         temb = None
 
