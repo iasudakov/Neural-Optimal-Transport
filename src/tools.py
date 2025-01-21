@@ -528,10 +528,36 @@ def plot_images(X, Y, T):
     torch.cuda.empty_cache(); gc.collect()
     return fig, axes
 
+def plot_images_EDM(X, Y, T):
+    freeze(T);
+    with torch.no_grad():
+        latent_z = torch.randn(10, 100, device=X.device)*0.1
+        T_X = T(X, latent_z)
+        imgs = torch.cat([X, T_X, Y]).to('cpu').permute(0,2,3,1).mul(0.5).add(0.5).numpy().clip(0,1)
+
+    fig, axes = plt.subplots(3, 10, figsize=(15, 4.5), dpi=150)
+    for i, ax in enumerate(axes.flatten()):
+        ax.imshow(imgs[i])
+        ax.get_xaxis().set_visible(False)
+        ax.set_yticks([])
+        
+    axes[0, 0].set_ylabel('X', fontsize=24)
+    axes[1, 0].set_ylabel('T(X)', fontsize=24)
+    axes[2, 0].set_ylabel('Y', fontsize=24)
+    
+    fig.tight_layout(pad=0.001)
+    torch.cuda.empty_cache(); gc.collect()
+    return fig, axes
+
 def plot_random_images(X_sampler, Y_sampler, T):
     X = X_sampler.sample(10)
     Y = Y_sampler.sample(10)
     return plot_images(X, Y, T)
+
+def plot_random_images_EDM(X_sampler, Y_sampler, T):
+    X = X_sampler.sample(10)
+    Y = Y_sampler.sample(10)
+    return plot_images_EDM(X, Y, T)
 
 
 
@@ -628,6 +654,38 @@ def get_pushed_loader_stats(T, loader, batch_size=8, verbose=False, device='cuda
     gc.collect(); torch.cuda.empty_cache()
     return mu, sigma, l2_sum/val_size, lpips_sum/val_size
 
+
+def get_pushed_loader_stats_EDM(T, loader, batch_size=8, verbose=False, device='cuda',
+                            use_downloaded_weights=False):
+    dims = 2048
+    block_idx = InceptionV3.BLOCK_INDEX_BY_DIM[dims]
+    model = InceptionV3([block_idx], use_downloaded_weights=use_downloaded_weights).to(device)
+    freeze(model); freeze(T)
+    
+    lpips = LearnedPerceptualImagePatchSimilarity(net_type='squeeze', reduction = 'sum')
+    
+    pred_arr = []
+    
+    l2_sum = 0
+    lpips_sum = 0
+    val_size = 0
+    
+    with torch.no_grad():
+        for step, X in enumerate(loader) if not verbose else tqdm(enumerate(loader)):
+            for i in range(0, len(X), batch_size):
+                start, end = i, min(i + batch_size, len(X))
+                latent_z = torch.randn(end-start, 100, device=device)*0.1
+                TX = T(X[start:end].type(torch.FloatTensor).to(device), latent_z)
+                l2_sum += ((X[start:end].type(torch.FloatTensor).to(device) - TX)**2).sum()
+                lpips_sum += lpips(normalize(TX).cpu(), X[start:end].type(torch.FloatTensor))
+                batch = TX.add(1).mul(.5)
+                pred_arr.append(model(batch)[0].cpu().data.numpy().reshape(end-start, -1))
+                val_size += end - start
+
+    pred_arr = np.vstack(pred_arr)
+    mu, sigma = np.mean(pred_arr, axis=0), np.cov(pred_arr, rowvar=False)
+    gc.collect(); torch.cuda.empty_cache()
+    return mu, sigma, l2_sum/val_size, lpips_sum/val_size
 
 def plot_Z_images(XZ, Y, T):
     freeze(T);

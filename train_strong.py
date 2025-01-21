@@ -31,7 +31,7 @@ warnings.filterwarnings('ignore')
 
 T_ITERS = 10
 f_LR, T_LR = 2e-4, 2e-4
-IMG_SIZE = 64
+IMG_SIZE = 32
 BATCH_SIZE = 64
 PLOT_INTERVAL = 10
 COST = 'mse'
@@ -45,10 +45,10 @@ torch.cuda.set_device(f'cuda:0')
 torch.manual_seed(SEED)
 np.random.seed(SEED)
 
-DATASET1  = 'celeba_hq'
-DATASET2 = 'anime_faces'
-# DATASET1 = 'MNIST-colored_2'
-# DATASET2 = 'MNIST-colored_3'
+# DATASET1  = 'celeba_hq'
+# DATASET2 = 'anime_faces'
+DATASET1 = 'MNIST-colored_2'
+DATASET2 = 'MNIST-colored_3'
 
 
 filename = './stats/{}_{}_test.json'.format(DATASET2, IMG_SIZE)
@@ -82,7 +82,7 @@ for i in range(7): #подобрал чтобы лица смотрели пря
 wandb.init(name='strong_NOT_tester', project='diffusion-NOT')
 
 
-scaler = torch.GradScaler()
+scaler = torch.cuda.amp.GradScaler()
 
 for step in tqdm(range(MAX_STEPS)):
     # T optimization
