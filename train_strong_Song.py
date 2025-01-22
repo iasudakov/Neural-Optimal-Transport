@@ -14,13 +14,12 @@ from IPython.display import clear_output
 from src.SongUnet import SongUNet, SongUNetD
 
 from src.tools import fig2img
-from src.tools import weights_init_D, plot_images_EDM, plot_random_images_EDM
+from src.tools import plot_images_EDM, plot_random_images_EDM
 from src.tools import get_pushed_loader_stats_EDM
 from src.tools import unfreeze, freeze
 
 from src.tools import load_dataset
 from src.fid_score import calculate_frechet_distance
-import json
 
 import warnings
 warnings.filterwarnings('ignore')
@@ -32,7 +31,6 @@ f_LR, T_LR = 1e-4, 1e-4
 IMG_SIZE = 32
 BATCH_SIZE = 64
 PLOT_INTERVAL = 50
-COST = 'mse'
 CPKT_INTERVAL = 1000
 MAX_STEPS = 10000
 SEED = 0x000000
@@ -46,17 +44,21 @@ torch.cuda.manual_seed(SEED)
 torch.cuda.manual_seed_all(SEED)
 np.random.seed(SEED)
 
-T = SongUNet(32, 3, 3, model_channels=128, channel_mult = [2,2,2]).cuda()
-f = SongUNetD(32, 3, 3, model_channels=128, channel_mult = [2,2,2]).cuda() 
-
 DATASET1 = 'MNIST-colored_2'
 DATASET2 = 'MNIST-colored_3'
 
+if DATASET1 == 'MNIST-colored_2' and DATASET2 == 'MNIST-colored_3':
+    T = SongUNet(32, 3, 3, model_channels=96, channel_mult = [2,2,2]).cuda()
+    f = SongUNetD(32, 3, 3, model_channels=96, channel_mult = [2,2,2]).cuda() 
+else:
+    T = SongUNet(32, 3, 3, model_channels=128, channel_mult = [2,2,2]).cuda()
+    f = SongUNetD(32, 3, 3, model_channels=128, channel_mult = [2,2,2]).cuda() 
+
 
 filename = './stats/{}_{}_test.json'.format(DATASET2, IMG_SIZE)
-with open(filename, 'r') as fp:
-    data_stats = json.load(fp)
-    mu_data, sigma_data = data_stats['mu'], data_stats['sigma']
+data_stats = np.load(f'stats/{DATASET2}{IMG_SIZE}train.npz')
+mu_data = data_stats['mu']
+sigma_data = data_stats['sigma']
 del data_stats
 
 X_sampler, X_test_sampler = load_dataset(DATASET1, img_size=IMG_SIZE, batch_size=BATCH_SIZE, num_workers=8)
@@ -127,13 +129,14 @@ for step in tqdm(range(MAX_STEPS)):
         wandb.log({f'L2' : l2}, step=step)
         wandb.log({f'LPIPS' : lpips}, step=step)
         del mu, sigma, fid, lpips
+        gc.collect(); torch.cuda.empty_cache()
 
-    if step % CPKT_INTERVAL == 0:
-        torch.save(T.state_dict(), f'./checkpoints/EDM_strong_Song/T_{step}.pt')
-        torch.save(f.state_dict(), f'./checkpoints/EDM_strong_Song/f_{step}.pt')
-        torch.save(f_opt.state_dict(), f'./checkpoints/EDM_strong_Song/f_opt_{step}.pt')
-        torch.save(T_opt.state_dict(), f'./checkpoints/EDM_strong_Song/T_opt_{step}.pt')
+    # if step % CPKT_INTERVAL == 0:
+    #     torch.save(T.state_dict(), f'./checkpoints/EDM_strong_Song/T_{step}.pt')
+    #     torch.save(f.state_dict(), f'./checkpoints/EDM_strong_Song/f_{step}.pt')
+    #     torch.save(f_opt.state_dict(), f'./checkpoints/EDM_strong_Song/f_opt_{step}.pt')
+    #     torch.save(T_opt.state_dict(), f'./checkpoints/EDM_strong_Song/T_opt_{step}.pt')
+    #     gc.collect(); torch.cuda.empty_cache()
     
-    gc.collect(); torch.cuda.empty_cache()
     
     

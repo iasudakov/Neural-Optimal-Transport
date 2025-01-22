@@ -32,8 +32,8 @@ gc.collect(); torch.cuda.empty_cache()
 DEVICE_ID = 0
 
 DATASET_LIST = [
-    ('celeba_hq', 64, 1),
-    ('anime_faces', 64, 1),
+    # ('celeba_hq', 64, 1),
+    # ('anime_faces', 64, 1),
     ('MNIST-colored_3', 32, 1),
 ]
 
@@ -43,15 +43,14 @@ torch.cuda.set_device(f'cuda:{DEVICE_ID}')
 
 for DATASET, IMG_SIZE, N_EPOCHS in tqdm(DATASET_LIST):
     print('Processing {}'.format(DATASET))
-    sampler, test_sampler = load_dataset(DATASET, img_size=IMG_SIZE, batch_size=256)
+    sampler, _ = load_dataset(DATASET, img_size=IMG_SIZE, batch_size=256)
     print('Dataset {} loaded'.format(DATASET))
 
     mu, sigma = get_loader_stats(sampler.loader, n_epochs=N_EPOCHS, verbose=True, batch_size=256)
     print('Trace of sigma: {}'.format(np.trace(sigma)))
-    stats = {'mu' : mu.tolist(), 'sigma' : sigma.tolist()}
+    stats = {'mu' : np.array(mu), 'sigma' : np.array(sigma)}
     print('Stats computed')
 
-    filename = './stats/{}_{}_test.json'.format(DATASET, IMG_SIZE)
-    with open(filename, 'w') as fp:
-        json.dump(stats, fp)
+    filename = './stats/{}_{}train'.format(DATASET, IMG_SIZE)
+    np.savez(filename, **stats)
     print('States saved to {}'.format(filename))

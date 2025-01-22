@@ -242,6 +242,28 @@ def load_dataset(name, img_size=64, batch_size=64,
         train_set = DefaultDataset(f'./data/celeba_hq/train/female', transform=transform)
         test_set = DefaultDataset(f'./data/celeba_hq/val/female', transform=transform)
         
+    elif name.startswith('male64'):
+        
+        transform = Compose([
+            Resize((img_size, img_size)),
+            ToTensor(),
+            Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+        ])
+        
+        train_set = DefaultDataset(f'./data/male64/male64train', transform=transform)
+        test_set = DefaultDataset(f'./data/male64/male64test', transform=transform)
+        
+    elif name.startswith('female64'):
+        
+        transform = Compose([
+            Resize((img_size, img_size)),
+            ToTensor(),
+            Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+        ])
+        
+        train_set = DefaultDataset(f'./data/female64/female64train', transform=transform)
+        test_set = DefaultDataset(f'./data/female64/female64test', transform=transform)
+        
     elif name.startswith("MNIST"):
         # In case of using certain classe from the MNIST dataset you need to specify them by writing in the next format "MNIST_{digit}_{digit}_..._{digit}"
         transform = torchvision.transforms.Compose([
@@ -257,8 +279,8 @@ def load_dataset(name, img_size=64, batch_size=64,
         if not classes:
             classes = [i for i in range(10)]
 
-        train_set = datasets.MNIST(f'./data/{name}', train=True, transform=transform, download=False)
-        test_set = datasets.MNIST(f'./data/{name}', train=False, transform=transform, download=False)
+        train_set = datasets.MNIST(f'./data/{name}', train=True, transform=transform, download=True)
+        test_set = datasets.MNIST(f'./data/{name}', train=False, transform=transform, download=True)
         
         train_test = []
         
