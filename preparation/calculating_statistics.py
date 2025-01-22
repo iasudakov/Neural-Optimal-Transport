@@ -51,6 +51,6 @@ for DATASET, IMG_SIZE, N_EPOCHS in tqdm(DATASET_LIST):
     stats = {'mu' : np.array(mu), 'sigma' : np.array(sigma)}
     print('Stats computed')
 
-    filename = './stats/{}_{}train'.format(DATASET, IMG_SIZE)
+    filename = './stats/{}{}train'.format(DATASET, IMG_SIZE)
     np.savez(filename, **stats)
     print('States saved to {}'.format(filename))
