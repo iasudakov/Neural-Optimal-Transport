@@ -79,8 +79,6 @@ for i in range(7): #подобрал чтобы лица смотрели пря
     
 wandb.init(name='strong_NOT_tester', project='diffusion-NOT')
 
-scaler = torch.cuda.amp.GradScaler()
-
 for step in tqdm(range(MAX_STEPS)):
     # T optimization
     unfreeze(T); freeze(f)
@@ -89,12 +87,10 @@ for step in tqdm(range(MAX_STEPS)):
         X = X_sampler.sample(BATCH_SIZE)
         with torch.no_grad():
             latent_z = torch.randn(BATCH_SIZE, NZ, device=X.device)*0.1
-        with torch.autocast(device_type='cuda', enabled=True):
-            T_X = T(X, latent_z)
-            T_loss = F.mse_loss(X, T_X).mean() - f(T_X).mean()
-            scaler.scale(T_loss).backward()
-            scaler.step(T_opt)
-            scaler.update()
+        T_X = T(X, latent_z)
+        T_loss = F.mse_loss(X, T_X).mean() - f(T_X).mean()
+        T_loss.backward()
+        T_opt.step()
     wandb.log({f'T_loss' : T_loss.item()}, step=step) 
     del T_loss, T_X, X; 
     gc.collect(); torch.cuda.empty_cache()
@@ -107,11 +103,9 @@ for step in tqdm(range(MAX_STEPS)):
         T_X = T(X, latent_z)
     Y = Y_sampler.sample(BATCH_SIZE)
     f_opt.zero_grad()
-    with torch.autocast(device_type='cuda', enabled=True):
-        f_loss = f(T_X).mean() - f(Y).mean()
-        scaler.scale(f_loss).backward()
-        scaler.step(f_opt)
-        scaler.update()
+    f_loss = f(T_X).mean() - f(Y).mean()
+    f_loss.backward()
+    f_opt.step()
     wandb.log({f'f_loss' : f_loss.item()}, step=step) 
     del f_loss, Y, X, T_X; 
     gc.collect(); torch.cuda.empty_cache()
