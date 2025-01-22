@@ -46,8 +46,8 @@ torch.cuda.manual_seed(SEED)
 torch.cuda.manual_seed_all(SEED)
 np.random.seed(SEED)
 
-T = SongUNet(32, 3, 3, model_channels=96).cuda()
-f = SongUNetD(32, 3, 3, model_channels=96).cuda() 
+T = SongUNet(32, 3, 3, model_channels=128, channel_mult = [2,2,2]).cuda()
+f = SongUNetD(32, 3, 3, model_channels=128, channel_mult = [2,2,2]).cuda() 
 
 DATASET1 = 'MNIST-colored_2'
 DATASET2 = 'MNIST-colored_3'
