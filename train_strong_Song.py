@@ -28,9 +28,9 @@ warnings.filterwarnings('ignore')
 T_ITERS = 10
 NZ = 100
 f_LR, T_LR = 1e-4, 1e-4
-IMG_SIZE = 32
-BATCH_SIZE = 64
-PLOT_INTERVAL = 50
+IMG_SIZE = 64
+BATCH_SIZE = 10
+PLOT_INTERVAL = 5
 CPKT_INTERVAL = 1000
 MAX_STEPS = 10000
 SEED = 0x000000
@@ -44,8 +44,8 @@ torch.cuda.manual_seed(SEED)
 torch.cuda.manual_seed_all(SEED)
 np.random.seed(SEED)
 
-DATASET1 = 'MNIST-colored_2'
-DATASET2 = 'MNIST-colored_3'
+DATASET1 = 'male'
+DATASET2 = 'female'
 
 if DATASET1 == 'MNIST-colored_2' and DATASET2 == 'MNIST-colored_3':
     T = SongUNet(32, 3, 3, model_channels=96, channel_mult = [2,2,2]).cuda()
@@ -54,8 +54,6 @@ else:
     T = SongUNet(32, 3, 3, model_channels=128, channel_mult = [2,2,2]).cuda()
     f = SongUNetD(32, 3, 3, model_channels=128, channel_mult = [2,2,2]).cuda() 
 
-
-filename = './stats/{}_{}_test.json'.format(DATASET2, IMG_SIZE)
 data_stats = np.load(f'stats/{DATASET2}{IMG_SIZE}train.npz')
 mu_data = data_stats['mu']
 sigma_data = data_stats['sigma']

@@ -242,7 +242,7 @@ def load_dataset(name, img_size=64, batch_size=64,
         train_set = DefaultDataset(f'./data/celeba_hq/train/female', transform=transform)
         test_set = DefaultDataset(f'./data/celeba_hq/val/female', transform=transform)
         
-    elif name.startswith('male64'):
+    elif name.startswith('male'):
         
         transform = Compose([
             Resize((img_size, img_size)),
@@ -250,10 +250,10 @@ def load_dataset(name, img_size=64, batch_size=64,
             Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
         ])
         
-        train_set = DefaultDataset(f'./data/male64/male64train', transform=transform)
-        test_set = DefaultDataset(f'./data/male64/male64test', transform=transform)
+        train_set = DefaultDataset(f'./data/male{img_size}train', transform=transform)
+        test_set = DefaultDataset(f'./data/male{img_size}test', transform=transform)
         
-    elif name.startswith('female64'):
+    elif name.startswith('female'):
         
         transform = Compose([
             Resize((img_size, img_size)),
@@ -261,8 +261,8 @@ def load_dataset(name, img_size=64, batch_size=64,
             Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
         ])
         
-        train_set = DefaultDataset(f'./data/female64/female64train', transform=transform)
-        test_set = DefaultDataset(f'./data/female64/female64test', transform=transform)
+        train_set = DefaultDataset(f'./data/female{img_size}train', transform=transform)
+        test_set = DefaultDataset(f'./data/female{img_size}test', transform=transform)
         
     elif name.startswith("MNIST"):
         # In case of using certain classe from the MNIST dataset you need to specify them by writing in the next format "MNIST_{digit}_{digit}_..._{digit}"

@@ -39,7 +39,7 @@ DATASET_LIST = [
 
 assert torch.cuda.is_available()
 torch.cuda.set_device(f'cuda:{DEVICE_ID}')
-
+/home/sudakovcom/Desktop/tester/NOT/data
 
 for DATASET, IMG_SIZE, N_EPOCHS in tqdm(DATASET_LIST):
     print('Processing {}'.format(DATASET))
