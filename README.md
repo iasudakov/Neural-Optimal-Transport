@@ -1,6 +1,6 @@
 # NOT
 
-PyTorch implementation of https://arxiv.org/abs/2201.12220}{NOT} method using more powerful \href{https://github.com/NVlabs/edm}{EDM} based networks
+PyTorch implementation of NOT https://arxiv.org/abs/2201.12220 method using more powerful https://github.com/NVlabs/edm EDM based networks
 
 To download celeba dataset:
 
